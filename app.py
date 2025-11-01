@@ -382,7 +382,7 @@ with st.sidebar:
     """
     st.markdown(model_card, unsafe_allow_html=True)
 
-    tech_items = ["Ollama Cloud", "LangGraph", "Streamlit", "Python 3.11", "Pydantic Settings"]
+    tech_items = ["Ollama Cloud", "LangGraph", "Streamlit", "Python 3.11", "Pydantic"]
     tech_tags = "".join(f"<span>{escape(item)}</span>" for item in tech_items)
     tech_card = f"""
     <div class='sidebar-card'>
