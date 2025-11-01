@@ -1,0 +1,38 @@
+name: Pratik Sharma
+tagline: "AI engineer blending LangGraph workflows with immersive frontends"
+bio: >-
+  Pratik is a full-stack machine learning engineer who enjoys building personable
+  AI assistants that feel both helpful and human. He mixes strong backend systems
+  knowledge with an eye for crisp, modern interface design.
+highlights:
+  - 6+ years building chatbots, agents, and realtime data pipelines.
+  - Loves shipping polished products with expressive frontends.
+  - Passionate about making AI tools explainable and trustworthy.
+expertise:
+  conversational_ai:
+    - LangChain / LangGraph orchestration
+    - Retrieval augmented generation
+    - Evaluation and safety tooling
+  software_engineering:
+    - Python, FastAPI, Streamlit, React
+    - Event-driven architectures
+    - Cloud infrastructure on Azure and AWS
+  machine_learning:
+    - LLM fine-tuning and prompt engineering
+    - Embedding search systems
+    - Analytics and experiment tracking
+projects:
+  - name: StudioFlow Agent Platform
+    role: Lead Engineer
+    impact: Architected LangGraph-driven agents powering 50k weekly conversations.
+  - name: StoryWave Streamlit Suite
+    role: Product Engineer
+    impact: Shipped a multi-panel Streamlit app for storytellers with live persona chat.
+  - name: InsightPulse Analytics
+    role: Data Scientist
+    impact: Designed predictive dashboards with explainable AI insights for executives.
+fun_facts:
+  - Runs a weekend photography vlog focused on city minimalism.
+  - Collects quirky coffee mugs from every city he visits.
+  - Coaches a community robotics team on conversational UX.
+

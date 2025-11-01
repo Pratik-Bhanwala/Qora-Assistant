@@ -1,0 +1,7 @@
+numpy==2.3.4
+streamlit==1.38.0
+langgraph==0.2.24
+ollama==0.4.9
+python-dotenv==1.0.1
+pydantic-settings==2.5.2
+
