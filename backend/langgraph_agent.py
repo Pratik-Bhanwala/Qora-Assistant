@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import Literal, TypedDict
+from typing import Any, Generator, Literal, TypedDict
 from langgraph.graph import END, START, StateGraph
 from ollama import Client
 
@@ -76,7 +76,7 @@ class PersonaAgent:
         self,
         history: list[dict[str, str]],
         user_input: str,
-    ) -> "typing.Generator[dict[str, typing.Any], None, None]":
+    ) -> Generator[dict[str, Any], None, None]:
         """Yield reasoning first, then assistant tokens as they stream in, then final history.
 
         Events yielded:
@@ -85,13 +85,13 @@ class PersonaAgent:
         - { 'final': True, 'history': [...], 'metadata': {...} }
         """
 
-        import typing as _t
-
         # Build generic system message with reasoning tags
         system_prompt = (
-            "You are Qora, a helpful general-purpose assistant. "
-            "First write your reasoning inside <thinking>...</thinking> using clear steps, "
-            "then write the final answer inside <answer>...</answer>."
+            "You are Qora, a helpful general-purpose assistant. Think through the problem "
+            "step by step inside <thinking>...</thinking>. After you finish thinking, respond "
+            "to the user only inside <answer>...</answer> with the final answer. The content "
+            "inside <answer> must not repeat or reference the thinking steps. Use fenced code "
+            "blocks for code snippets."
         )
 
         messages: list[dict[str, str]] = [{"role": "system", "content": system_prompt}]
@@ -203,8 +203,10 @@ class PersonaAgent:
         user_input = state["user_input"]
         context = ""
         system_prompt = (
-            "You are Qora, a helpful, concise, and safe general-purpose AI assistant. "
-            "Respond clearly and helpfully."
+            "You are Qora, a helpful, concise, and safe general-purpose AI assistant. Think "
+            "through the problem inside <thinking>...</thinking> and present only the final answer "
+            "inside <answer>...</answer> without referencing the hidden thinking. Use fenced code "
+            "blocks for code snippets."
         )
 
         messages: list[dict[str, str]] = [{"role": "system", "content": system_prompt}]

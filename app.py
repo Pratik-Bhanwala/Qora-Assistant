@@ -147,7 +147,8 @@ def apply_custom_styles() -> None:
             div[data-testid="stChatMessageUser"] { background: #2563eb; color:#fff; margin-left:auto; }
             div[data-testid="stChatMessageUser"] p { color:#fff !important; }
             /* Make thinking lighter so it is visually distinct */
-            .thinking-card { background:#fbfcff; border:1px dashed #e6ebf5; border-radius:12px; padding:10px 12px; color:#94a3b8; font-size:.95rem; font-style: italic; }
+            .thinking-card { background:#f8f9fb !important; border:1px dashed #d1d9e6 !important; border-radius:12px !important; padding:10px 12px !important; color:#8595a8 !important; font-size:0.9rem !important; font-style: italic !important; font-weight: 400 !important; line-height: 1.5 !important; }
+            .thinking-card * { color:#8595a8 !important; font-style: italic !important; font-weight: 400 !important; }
             .chat-header { font-size: 1.8rem; font-weight: 600; margin-bottom: 0.1rem; }
             .chat-subheader { color: #64748b; margin-bottom: 1.2rem; }
             /* Reduce chat input height and keep it very close to bottom */
@@ -294,7 +295,27 @@ def _render_markdown_with_code(container, text: str) -> None:
         container.markdown(text[pos:])
 
 
+def _render_code_snippets(container, text: str) -> None:
+    """Extract code fences from text and render copy/download controls without
+    reprinting the entire answer."""
+    import re
+
+    pattern = re.compile(r"```(\w+)?\n([\s\S]*?)```", re.MULTILINE)
+    for idx, match in enumerate(pattern.finditer(text)):
+        lang = (match.group(1) or "").strip() or None
+        code = match.group(2)
+        container.code(code, language=lang)
+        container.download_button(
+            label="Download code",
+            data=code,
+            file_name=f"snippet_{idx}.{lang or 'txt'}",
+            mime="text/plain",
+            key=f"dl-{st.session_state.chat_id}-{len(st.session_state.conversation)}-{idx}",
+        )
+
+
 def _sanitize_tags(text: str) -> str:
+    """Remove <thinking> and <answer> tags from text."""
     import re
     return re.sub(r"</?(thinking|answer)>", "", text)
 
@@ -333,7 +354,7 @@ def handle_user_message(prompt: str) -> None:
     thinking_body = thinking_card.empty()
     text_placeholder = assistant_container.empty()
 
-    thinking_body.markdown("<div class='thinking-card'>Thinking…</div>", unsafe_allow_html=True)
+    thinking_body.markdown("<div class='thinking-card' style='background:#f8f9fb; border:1px dashed #d1d9e6; border-radius:12px; padding:10px 12px; color:#8595a8; font-size:0.9rem; font-style:italic; font-weight:400; line-height:1.5;'>Thinking…</div>", unsafe_allow_html=True)
 
     previous_history = list(st.session_state.conversation)
     assembled = ""
@@ -349,13 +370,13 @@ def handle_user_message(prompt: str) -> None:
                     if lines:
                         thinking_buffer = "\n".join(lines)
                         thinking_body.markdown(
-                            f"<div class='thinking-card'>{escape(_sanitize_tags(thinking_buffer)).replace('\n','<br>')}</div>",
+                            f"<div class='thinking-card' style='background:#f8f9fb; border:1px dashed #d1d9e6; border-radius:12px; padding:10px 12px; color:#8595a8; font-size:0.9rem; font-style:italic; font-weight:400; line-height:1.5;'>{escape(_sanitize_tags(thinking_buffer)).replace('\n','<br>')}</div>",
                             unsafe_allow_html=True,
                         )
                 if event.get("thinking_delta"):
                     thinking_buffer += event["thinking_delta"]
                     thinking_body.markdown(
-                        f"<div class='thinking-card'>{escape(_sanitize_tags(thinking_buffer)).replace('\n','<br>')}</div>",
+                        f"<div class='thinking-card' style='background:#f8f9fb; border:1px dashed #d1d9e6; border-radius:12px; padding:10px 12px; color:#8595a8; font-size:0.9rem; font-style:italic; font-weight:400; line-height:1.5;'>{escape(_sanitize_tags(thinking_buffer)).replace('\n','<br>')}</div>",
                         unsafe_allow_html=True,
                     )
                 if event.get("delta"):
@@ -368,14 +389,12 @@ def handle_user_message(prompt: str) -> None:
                     metadata = event.get("metadata") or {}
                     st.session_state.diagnostics.append(metadata)
                     final_text = assembled or thinking_buffer
-                    # Replace the live thinking card with a collapsed expander for cleanliness
+                    # Hide thinking card once answer is complete
                     thinking_card.empty()
-                    with assistant_container.expander("Thought process (optional)", expanded=False):
-                        st.markdown(f"<div class='thinking-card'>{escape(_sanitize_tags(thinking_buffer)).replace('\n','<br>')}</div>", unsafe_allow_html=True)
-                    # Keep the streamed text visible; optionally add a copyable rendering below
+                    # Keep the streamed text visible; optionally add copyable code snippets
                     if "```" in final_text:
                         final_container = assistant_container.container()
-                        _render_markdown_with_code(final_container, _sanitize_tags(final_text))
+                        _render_code_snippets(final_container, _sanitize_tags(final_text))
                     persist_session()
                     break
         except ConnectionError:
