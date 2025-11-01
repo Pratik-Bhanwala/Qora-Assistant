@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+import time
 from html import escape
 from uuid import uuid4
 
@@ -147,8 +148,10 @@ def apply_custom_styles() -> None:
             div[data-testid="stChatMessageUser"] { background: #2563eb; color:#fff; margin-left:auto; }
             div[data-testid="stChatMessageUser"] p { color:#fff !important; }
             /* Make thinking lighter so it is visually distinct */
-            .thinking-card { background:#f8f9fb !important; border:1px dashed #d1d9e6 !important; border-radius:12px !important; padding:10px 12px !important; color:#8595a8 !important; font-size:0.9rem !important; font-style: italic !important; font-weight: 400 !important; line-height: 1.5 !important; }
+            .thinking-card { background:#f8f9fb !important; border:1px dashed #d1d9e6 !important; border-radius:12px !important; padding:12px !important; color:#8595a8 !important; font-size:0.9rem !important; font-style: italic !important; font-weight: 400 !important; line-height: 1.5 !important; }
             .thinking-card * { color:#8595a8 !important; font-style: italic !important; font-weight: 400 !important; }
+            .thinking-card .thinking-label { display:block; font-style: normal !important; text-transform: uppercase; letter-spacing: .08em; font-size:0.72rem !important; font-weight: 600 !important; margin-bottom:6px; color:#64748b !important; }
+            .thinking-card .thinking-body { font-style: italic !important; color:#8595a8 !important; }
             .chat-header { font-size: 1.8rem; font-weight: 600; margin-bottom: 0.1rem; }
             .chat-subheader { color: #64748b; margin-bottom: 1.2rem; }
             /* Reduce chat input height and keep it very close to bottom */
@@ -271,8 +274,8 @@ def send_suggestion(prompt_text: str) -> None:
     st.rerun()
 
 
-def _render_markdown_with_code(container, text: str) -> None:
-    """Render markdown with fenced code blocks using st.code for copyability."""
+def _render_message_with_code(container, text: str) -> None:
+    """Render a chat message with markdown and code blocks exactly once."""
     import re
 
     pattern = re.compile(r"```(\w+)?\n([\s\S]*?)```", re.MULTILINE)
@@ -287,7 +290,7 @@ def _render_markdown_with_code(container, text: str) -> None:
         container.download_button(
             label="Download code",
             data=code,
-            file_name=f"snippet.{(lang or 'txt')}",
+            file_name=f"snippet.{lang or 'txt'}",
             mime="text/plain",
         )
         pos = end
@@ -295,29 +298,35 @@ def _render_markdown_with_code(container, text: str) -> None:
         container.markdown(text[pos:])
 
 
-def _render_code_snippets(container, text: str) -> None:
-    """Extract code fences from text and render copy/download controls without
-    reprinting the entire answer."""
-    import re
-
-    pattern = re.compile(r"```(\w+)?\n([\s\S]*?)```", re.MULTILINE)
-    for idx, match in enumerate(pattern.finditer(text)):
-        lang = (match.group(1) or "").strip() or None
-        code = match.group(2)
-        container.code(code, language=lang)
-        container.download_button(
-            label="Download code",
-            data=code,
-            file_name=f"snippet_{idx}.{lang or 'txt'}",
-            mime="text/plain",
-            key=f"dl-{st.session_state.chat_id}-{len(st.session_state.conversation)}-{idx}",
-        )
-
-
 def _sanitize_tags(text: str) -> str:
     """Remove <thinking> and <answer> tags from text."""
     import re
     return re.sub(r"</?(thinking|answer)>", "", text)
+
+
+def _strip_reasoning_overlap(reasoning: str, answer: str) -> str:
+    """Trim duplicated answer text from the end of the reasoning block."""
+
+    reasoning_clean = reasoning.strip()
+    answer_clean = answer.strip()
+    if not answer_clean or not reasoning_clean:
+        return reasoning_clean
+
+    if reasoning_clean.endswith(answer_clean):
+        reasoning_clean = reasoning_clean[: -len(answer_clean)].rstrip()
+
+    return reasoning_clean
+
+
+def _thinking_html(text: str, *, completed: bool) -> str:
+    label = "Thought process" + (" (complete)" if completed else " (in progress)")
+    body = escape(text).replace("\n", "<br>") if text else "<em>Thinking…</em>"
+    return (
+        "<div class='thinking-card'>"
+        f"<span class='thinking-label'>{label}</span>"
+        f"<div class='thinking-body'>{body}</div>"
+        "</div>"
+    )
 
 
 suggestions = [
@@ -354,11 +363,12 @@ def handle_user_message(prompt: str) -> None:
     thinking_body = thinking_card.empty()
     text_placeholder = assistant_container.empty()
 
-    thinking_body.markdown("<div class='thinking-card' style='background:#f8f9fb; border:1px dashed #d1d9e6; border-radius:12px; padding:10px 12px; color:#8595a8; font-size:0.9rem; font-style:italic; font-weight:400; line-height:1.5;'>Thinking…</div>", unsafe_allow_html=True)
+    thinking_body.markdown(_thinking_html("", completed=False), unsafe_allow_html=True)
 
     previous_history = list(st.session_state.conversation)
     assembled = ""
     st.session_state.stop_requested = False
+    answer_started = False
 
     with st.spinner("Thinking…"):
         try:
@@ -369,17 +379,33 @@ def handle_user_message(prompt: str) -> None:
                     lines = event.get("thinking") or []
                     if lines:
                         thinking_buffer = "\n".join(lines)
+                        reasoning = _sanitize_tags(thinking_buffer)
+                        if answer_started:
+                            reasoning = _strip_reasoning_overlap(reasoning, _sanitize_tags(assembled))
                         thinking_body.markdown(
-                            f"<div class='thinking-card' style='background:#f8f9fb; border:1px dashed #d1d9e6; border-radius:12px; padding:10px 12px; color:#8595a8; font-size:0.9rem; font-style:italic; font-weight:400; line-height:1.5;'>{escape(_sanitize_tags(thinking_buffer)).replace('\n','<br>')}</div>",
+                            _thinking_html(reasoning, completed=answer_started),
                             unsafe_allow_html=True,
                         )
                 if event.get("thinking_delta"):
                     thinking_buffer += event["thinking_delta"]
+                    reasoning = _sanitize_tags(thinking_buffer)
+                    if answer_started:
+                        reasoning = _strip_reasoning_overlap(reasoning, _sanitize_tags(assembled))
                     thinking_body.markdown(
-                        f"<div class='thinking-card' style='background:#f8f9fb; border:1px dashed #d1d9e6; border-radius:12px; padding:10px 12px; color:#8595a8; font-size:0.9rem; font-style:italic; font-weight:400; line-height:1.5;'>{escape(_sanitize_tags(thinking_buffer)).replace('\n','<br>')}</div>",
+                        _thinking_html(reasoning, completed=answer_started),
                         unsafe_allow_html=True,
                     )
                 if event.get("delta"):
+                    if not answer_started:
+                        time.sleep(0.25)
+                        answer_started = True
+                        reasoning = _strip_reasoning_overlap(
+                            _sanitize_tags(thinking_buffer), _sanitize_tags(assembled)
+                        )
+                        thinking_body.markdown(
+                            _thinking_html(reasoning, completed=True),
+                            unsafe_allow_html=True,
+                        )
                     assembled += event["delta"]
                     text_placeholder.markdown(_sanitize_tags(assembled))
                 if st.session_state.get("stop_requested"):
@@ -388,13 +414,19 @@ def handle_user_message(prompt: str) -> None:
                     st.session_state.conversation = event["history"]
                     metadata = event.get("metadata") or {}
                     st.session_state.diagnostics.append(metadata)
-                    final_text = assembled or thinking_buffer
-                    # Hide thinking card once answer is complete
-                    thinking_card.empty()
-                    # Keep the streamed text visible; optionally add copyable code snippets
-                    if "```" in final_text:
-                        final_container = assistant_container.container()
-                        _render_code_snippets(final_container, _sanitize_tags(final_text))
+                    final_answer = _sanitize_tags(assembled) or _sanitize_tags(thinking_buffer)
+                    # Freeze thinking card in completed state
+                    reasoning = _strip_reasoning_overlap(
+                        _sanitize_tags(thinking_buffer), final_answer
+                    )
+                    thinking_body.markdown(
+                        _thinking_html(reasoning, completed=True),
+                        unsafe_allow_html=True,
+                    )
+                    # Replace the streamed text with a single rendered message
+                    text_placeholder.empty()
+                    final_container = assistant_container.container()
+                    _render_message_with_code(final_container, final_answer)
                     persist_session()
                     break
         except ConnectionError:
