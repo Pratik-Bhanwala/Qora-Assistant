@@ -136,29 +136,176 @@ def apply_custom_styles() -> None:
     st.markdown(
         """
         <style>
-            .stApp { background: #f7f8fa; color: #1f2937; }
-            .stApp:before { content:""; position: fixed; inset: 0; pointer-events: none;
-                background: radial-gradient(1200px 600px at 90% 5%, rgba(59,130,246,0.08), transparent 60%),
-                            radial-gradient(800px 400px at 10% 100%, rgba(99,102,241,0.08), transparent 60%); }
-            section[data-testid="stSidebar"] { background: #ffffff; border-right: 1px solid #e2e8f0; }
-            section[data-testid="stSidebar"] .stButton>button { border-radius: 12px; border: 1px solid #e2e8f0; background: #ffffff; color: #1f2937; }
-            section[data-testid="stSidebar"] .stButton>button:hover { border-color: #cbd5f5; }
-            .sidebar-header { font-weight: 600; margin-top: 0.5rem; margin-bottom: 0.75rem; }
-            div[data-testid="stChatMessage"] { max-width: 820px; margin-bottom: 20px; border-radius: 18px; border: 1px solid #e2e8f0; padding: 18px 22px; box-shadow: 0 12px 20px rgba(15,23,42,.05); background: #fff; }
-            div[data-testid="stChatMessageUser"] { background: #2563eb; color:#fff; margin-left:auto; }
-            div[data-testid="stChatMessageUser"] p { color:#fff !important; }
-            /* Make thinking lighter so it is visually distinct */
-            .thinking-card { background:#f8f9fb !important; border:1px dashed #d1d9e6 !important; border-radius:12px !important; padding:12px !important; color:#8595a8 !important; font-size:0.9rem !important; font-style: italic !important; font-weight: 400 !important; line-height: 1.5 !important; }
-            .thinking-card * { color:#8595a8 !important; font-style: italic !important; font-weight: 400 !important; }
-            .thinking-card .thinking-label { display:block; font-style: normal !important; text-transform: uppercase; letter-spacing: .08em; font-size:0.72rem !important; font-weight: 600 !important; margin-bottom:6px; color:#64748b !important; }
-            .thinking-card .thinking-body { font-style: italic !important; color:#8595a8 !important; }
-            .chat-header { font-size: 1.8rem; font-weight: 600; margin-bottom: 0.1rem; }
-            .chat-subheader { color: #64748b; margin-bottom: 1.2rem; }
-            /* Reduce chat input height and keep it very close to bottom */
-            div[data-testid="stChatInput"] { position: sticky; bottom: 6px; z-index: 2; padding-top: 0; padding-bottom: 0; }
-            .stChatInput textarea { border-radius:999px; border:1px solid #d1d5db; padding:10px 14px; font-size:.98rem; background:#ffffff; box-shadow: 0 12px 20px rgba(15,23,42,.06); }
-            [data-testid="stChatInputSubmitButton"] { border-radius:999px; background:#2563eb; color:#fff; border:none; width:40px; height:40px; display:inline-flex; align-items:center; justify-content:center; }
-            [data-testid="stChatInputSubmitButton"]:hover { background:#1d4ed8; }
+            .stApp {
+                background: linear-gradient(180deg, #f5f7ff 0%, #ffffff 45%, #f3f4f6 100%);
+                color: #0f172a;
+            }
+            .stApp:before {
+                content:"";
+                position: fixed; inset: 0; pointer-events: none;
+                background: radial-gradient(900px 600px at 92% 8%, rgba(59,130,246,0.10), transparent 60%),
+                            radial-gradient(700px 480px at 8% 90%, rgba(99,102,241,0.10), transparent 60%);
+            }
+            section[data-testid="stSidebar"] {
+                background: rgba(247, 249, 255, 0.92);
+                border-right: 1px solid #e2e8f0;
+                backdrop-filter: blur(12px);
+            }
+            section[data-testid="stSidebar"] .block-container {
+                padding-top: 1.6rem;
+                padding-bottom: 2rem;
+            }
+            section[data-testid="stSidebar"] button {
+                border-radius: 12px;
+                border: 1px solid #d7defe;
+                background: #ffffff;
+                color: #1f2937;
+                font-weight: 600;
+                box-shadow: 0 4px 14px rgba(79, 70, 229, 0.08);
+            }
+            section[data-testid="stSidebar"] button:hover {
+                background: #eef2ff;
+                border-color: #c7d2fe;
+            }
+            .sidebar-title {
+                font-size: 1.05rem;
+                font-weight: 700;
+                color: #1f2a44;
+                margin-bottom: 0.75rem;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .sidebar-card {
+                background: rgba(255, 255, 255, 0.9);
+                border: 1px solid #e0e7ff;
+                border-radius: 18px;
+                padding: 16px 18px;
+                margin-top: 1.2rem;
+                box-shadow: 0 18px 36px rgba(99,102,241,0.10);
+            }
+            .sidebar-card-title {
+                font-size: 0.78rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                color: #475569;
+                margin-bottom: 0.65rem;
+            }
+            .sidebar-tags {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .sidebar-tags span {
+                background: #eef2ff;
+                color: #1e3a8a;
+                border-radius: 999px;
+                padding: 4px 12px;
+                font-size: 0.75rem;
+                font-weight: 600;
+            }
+            .sidebar-metric {
+                display: flex;
+                justify-content: space-between;
+                font-size: 0.88rem;
+                color: #475569;
+                margin-bottom: 8px;
+            }
+            .sidebar-metric strong {
+                color: #1f2937;
+            }
+            div[data-testid="stChatMessage"] {
+                max-width: 880px;
+                margin-bottom: 20px;
+                border-radius: 20px;
+                border: 1px solid #e2e8f0;
+                padding: 20px 24px;
+                box-shadow: 0 18px 36px rgba(15, 23, 42, 0.05);
+                background: #ffffff;
+            }
+            div[data-testid="stChatMessageUser"] {
+                background: linear-gradient(135deg, #2563eb, #1d4ed8);
+                color: #ffffff;
+                border: none;
+                box-shadow: 0 16px 30px rgba(37, 99, 235, 0.18);
+            }
+            div[data-testid="stChatMessageUser"] p {
+                color: #ffffff !important;
+            }
+            div[data-testid="stChatMessageAssistant"] {
+                background: #ffffff;
+            }
+            .thinking-card {
+                background: #f8f9fb !important;
+                border: 1px dashed #d1d9e6 !important;
+                border-radius: 16px !important;
+                padding: 14px 16px !important;
+                color: #8595a8 !important;
+                font-size: 0.9rem !important;
+                font-style: italic !important;
+                font-weight: 400 !important;
+                line-height: 1.5 !important;
+            }
+            .thinking-card .thinking-label {
+                display: block;
+                font-style: normal !important;
+                font-weight: 700 !important;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                font-size: 0.72rem !important;
+                margin-bottom: 6px;
+                color: #64748b !important;
+            }
+            .thinking-card .thinking-body {
+                font-style: italic !important;
+                color: #8595a8 !important;
+            }
+            .chat-header {
+                font-size: 2rem;
+                font-weight: 700;
+                margin-bottom: 0.15rem;
+                color: #111827;
+            }
+            .chat-subheader {
+                color: #5b6785;
+                margin-bottom: 1.5rem;
+                font-size: 0.95rem;
+            }
+            .stChatInput textarea {
+                border-radius: 999px;
+                border: 1px solid #d1d5db;
+                padding: 12px 16px;
+                font-size: 1rem;
+                background: #ffffff;
+                box-shadow: 0 20px 36px rgba(15, 23, 42, 0.08);
+            }
+            [data-testid="stChatInputSubmitButton"] {
+                border-radius: 999px;
+                background: linear-gradient(135deg, #2563eb, #4338ca);
+                color: #ffffff;
+                border: none;
+                width: 46px; height: 46px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 14px 28px rgba(37, 99, 235, 0.15);
+            }
+            [data-testid="stChatInputSubmitButton"]:hover {
+                background: linear-gradient(135deg, #1d4ed8, #312e81);
+            }
+            .qora-badge {
+                position: fixed;
+                right: 18px;
+                bottom: 16px;
+                background: #0f172a;
+                color: #ffffff;
+                border-radius: 999px;
+                padding: 8px 14px;
+                font-weight: 600;
+                box-shadow: 0 12px 30px rgba(15, 23, 42, 0.25);
+                letter-spacing: 0.08em;
+            }
         </style>
         """,
         unsafe_allow_html=True,
@@ -178,7 +325,7 @@ apply_custom_styles()
 
 
 with st.sidebar:
-    st.markdown("<div class='sidebar-header'>Chats</div>", unsafe_allow_html=True)
+    st.markdown("<div class='sidebar-title'>Chats</div>", unsafe_allow_html=True)
     st.button("＋ New chat", use_container_width=True, on_click=new_chat, type="primary")
 
     chat_options = [chat["id"] for chat in st.session_state.chats]
@@ -195,67 +342,66 @@ with st.sidebar:
         select_chat(selected_chat)
         st.rerun()
 
-    delete_choice = st.selectbox(
-        "Delete chat",
-        options=["None"] + [get_chat(chat_id).get("title", "New chat") for chat_id in chat_options],
-        index=0,
-    )
-    if delete_choice != "None":
-        titles = [get_chat(chat_id).get("title", "New chat") for chat_id in chat_options]
-        chat_id_to_delete = chat_options[titles.index(delete_choice)]
-        st.session_state.chats = [chat for chat in st.session_state.chats if chat["id"] != chat_id_to_delete]
-        if chat_id_to_delete == st.session_state.chat_id:
+    if st.button("🗑 Delete this chat", use_container_width=True, key="delete-chat"):
+        if st.session_state.chats:
+            target_id = st.session_state.chat_id
+            st.session_state.chats = [chat for chat in st.session_state.chats if chat["id"] != target_id]
             if st.session_state.chats:
                 st.session_state.chat_id = st.session_state.chats[0]["id"]
+                st.session_state.conversation = list(st.session_state.chats[0].get("messages", []))
+                st.session_state.diagnostics = list(st.session_state.chats[0].get("diagnostics", []))
             else:
-                new_chat()
-        save_memory(st.session_state.chats)
-        select_chat(st.session_state.chat_id)
-        st.rerun()
-
-    with st.expander("Settings", expanded=True):
-        host_input = st.text_input(
-            "Ollama host",
-            value=st.session_state.ollama_host,
-            help="Use http://localhost:11434 for local runtime or https://ollama.com for cloud.",
-        )
-        if host_input != st.session_state.ollama_host:
-            details = agent.set_connection(host_input, st.session_state.ollama_api_key)
-            st.session_state.ollama_host = details["host"] or host_input
-            st.toast(f"Host set to {st.session_state.ollama_host}")
-
-        api_key_input = st.text_input(
-            "Ollama API key",
-            value=st.session_state.ollama_api_key,
-            type="password",
-            help="Only required for Ollama Cloud.",
-        )
-        if api_key_input != st.session_state.ollama_api_key:
-            st.session_state.ollama_api_key = api_key_input
-            details = agent.set_connection(st.session_state.ollama_host, api_key_input)
-            st.session_state.ollama_host = details["host"] or st.session_state.ollama_host
-            st.toast("Updated API key")
-
-        selected_model = st.text_input(
-            "Ollama model",
-            value=st.session_state.model_name,
-            help="Pick a model reachable by the configured host (e.g. glm-4.6:cloud).",
-        )
-        if selected_model and selected_model != st.session_state.model_name:
-            st.session_state.model_name = selected_model
-            agent.set_model(selected_model)
-            st.toast(f"Switched model to {selected_model}")
-
-        if st.button("Clear current chat", use_container_width=True):
-            st.session_state.conversation = []
-            st.session_state.diagnostics = []
-            persist_session()
+                chat = create_chat()
+                st.session_state.chats = [chat]
+                st.session_state.chat_id = chat["id"]
+                st.session_state.conversation = []
+                st.session_state.diagnostics = []
+            save_memory(st.session_state.chats)
+            st.toast("Chat deleted")
             st.rerun()
 
-        if st.button("■ Stop generation", help="Stop the current response"):
-            st.session_state.stop_requested = True
+    if st.button("🧹 Clear messages", use_container_width=True, key="clear-chat"):
+        st.session_state.conversation = []
+        st.session_state.diagnostics = []
+        persist_session()
+        st.toast("Current chat cleared")
+        st.rerun()
 
-    st.markdown("<div class='controls-section'></div>", unsafe_allow_html=True)
+    stop_disabled = not st.session_state.get("is_generating")
+    if st.button("⏹ Stop generation", use_container_width=True, key="force-stop", disabled=stop_disabled):
+        st.session_state.stop_requested = True
+        st.toast("Stopping response…")
+
+    model_card = f"""
+    <div class='sidebar-card'>
+        <div class='sidebar-card-title'>Model in use</div>
+        <div class='sidebar-metric'><span>Model</span><strong>{escape(st.session_state.model_name)}</strong></div>
+        <div class='sidebar-metric'><span>Host</span><strong>{escape(st.session_state.ollama_host)}</strong></div>
+        <div class='sidebar-metric'><span>Chats saved</span><strong>{len(st.session_state.chats)}</strong></div>
+    </div>
+    """
+    st.markdown(model_card, unsafe_allow_html=True)
+
+    tech_items = ["Ollama Cloud", "LangGraph", "Streamlit", "Python 3.11", "Pydantic Settings"]
+    tech_tags = "".join(f"<span>{escape(item)}</span>" for item in tech_items)
+    tech_card = f"""
+    <div class='sidebar-card'>
+        <div class='sidebar-card-title'>Tech stack</div>
+        <div class='sidebar-tags'>{tech_tags}</div>
+    </div>
+    """
+    st.markdown(tech_card, unsafe_allow_html=True)
+
+    help_card = """
+    <div class='sidebar-card'>
+        <div class='sidebar-card-title'>Tip</div>
+        <p style="margin:0; color:#475569; font-size:0.87rem;">
+            Use “＋ New chat” to start a fresh conversation. Chats are saved locally and you can remove any thread with the delete button above.
+        </p>
+    </div>
+    """
+    st.markdown(help_card, unsafe_allow_html=True)
+
 
 current_chat = get_chat(st.session_state.chat_id)
 header_title = current_chat.get("title") or "New chat"
